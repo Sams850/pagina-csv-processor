@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Subir CSV</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #764ba2 0%, #f093fb 50%, #f5576c 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        max-width: 600px;
+        width: 90%;
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+      }
+      h2 {
+        color: #8e44ad;
+        font-size: 32px;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(142, 68, 173, 0.2);
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      label {
+        color: #2c3e50;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: left;
+      }
+      input[type="file"] {
+        margin-top: 10px;
+        padding: 12px;
+        border: 3px dashed #9b59b6;
+        border-radius: 10px;
+        background: #f8f9fa;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+      input[type="file"]:hover {
+        border-color: #8e44ad;
+        background: #e8d5f2;
+        transform: scale(1.02);
+      }
+      .btn {
+        background: linear-gradient(135deg, #9b59b6 0%, #e74c3c 100%);
+        color: white;
+        padding: 15px 30px;
+        border-radius: 12px;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 8px 20px rgba(155, 89, 182, 0.4);
+        transition: all 0.3s ease;
+      }
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(155, 89, 182, 0.6);
+        background: linear-gradient(135deg, #e74c3c 0%, #9b59b6 100%);
+      }
+      .btn:active {
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Subir archivo CSV</h2>
+
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <label>Selecciona archivo CSV:</label>
+        <input type="file" name="file" accept=".csv" required />
+        <button class="btn" type="submit">Subir y visualizar</button>
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Procesar CSV</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 25px;
+        background: linear-gradient(135deg, #764ba2 0%, #f093fb 50%, #f5576c 100%);
+        min-height: 100vh;
+      }
+      h2 {
+        color: white;
+        font-size: 28px;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+      }
+      .missing-alert {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        color: white;
+        padding: 15px 20px;
+        margin: 15px 0;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+      }
+      .missing-alert strong {
+        font-size: 18px;
+        display: block;
+        margin-bottom: 10px;
+      }
+      .missing-alert ul {
+        margin: 5px 0;
+        padding-left: 20px;
+      }
+      .missing-alert li {
+        margin: 5px 0;
+      }
+      .table-container {
+        max-height: 300px;
+        overflow: auto;
+        border: 3px solid #8e44ad;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        margin: 20px 0;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background: linear-gradient(135deg, #9b59b6 0%, #e74c3c 100%);
+        color: white;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: left;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      td {
+        border: 1px solid #e0e0e0;
+        padding: 10px;
+        font-size: 13px;
+        background: white;
+      }
+      tr:nth-child(even) td {
+        background: #f8f9fa;
+      }
+      tr:hover td {
+        background: #e8d5f2;
+      }
+      .missing-value {
+        color: #e74c3c;
+        font-weight: bold;
+        background: #ffe5e5 !important;
+      }
+      .section {
+        margin: 25px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-left: 6px solid;
+        transition: transform 0.2s ease;
+      }
+      .section:hover {
+        transform: translateX(5px);
+      }
+      .section:nth-child(1) {
+        border-left-color: #e74c3c;
+      }
+      .section:nth-child(2) {
+        border-left-color: #f39c12;
+      }
+      .section:nth-child(3) {
+        border-left-color: #27ae60;
+      }
+      .section:nth-child(4) {
+        border-left-color: #9b59b6;
+      }
+      .section h3 {
+        color: #2c3e50;
+        margin-top: 0;
+        font-size: 20px;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #ecf0f1;
+      }
+      label {
+        color: #34495e;
+        font-weight: 500;
+        margin: 8px 0;
+        display: block;
+        cursor: pointer;
+      }
+      label:hover {
+        color: #8e44ad;
+      }
+      input[type="checkbox"] {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #9b59b6;
+      }
+      select, input[type="text"], input[type="number"] {
+        padding: 8px 12px;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        font-size: 14px;
+        margin: 5px 0;
+        transition: all 0.3s ease;
+      }
+      select:focus, input[type="text"]:focus, input[type="number"]:focus {
+        outline: none;
+        border-color: #9b59b6;
+        box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+      }
+      .btn {
+        background: linear-gradient(135deg, #9b59b6 0%, #e74c3c 100%);
+        color: white;
+        padding: 18px 40px;
+        text-decoration: none;
+        border-radius: 12px;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(155, 89, 182, 0.4);
+        transition: all 0.3s ease;
+        display: block;
+        width: 100%;
+        margin-top: 30px;
+      }
+      .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(155, 89, 182, 0.6);
+        background: linear-gradient(135deg, #e74c3c 0%, #9b59b6 100%);
+      }
+      .btn:active {
+        transform: translateY(-1px);
+      }
+      form {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        margin-top: 20px;
+      }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
+      .modal {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+      }
+      .modal h3 {
+        color: #e74c3c;
+        margin-top: 0;
+        font-size: 24px;
+      }
+      .modal p {
+        color: #2c3e50;
+        font-size: 16px;
+        margin: 20px 0;
+      }
+      .modal-btn {
+        background: linear-gradient(135deg, #9b59b6 0%, #e74c3c 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      .modal-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Vista previa: {{ filename }}</h2>
+
+    {% if missing_info %}
+    <div class="missing-alert">
+      <strong>Valores faltantes detectados:</strong>
+      <ul>
+        {% for col, count in missing_info.items() %}
+        <li>{{ col }}: {{ count }} valores faltantes</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if recommendations %}
+    <div style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: white; padding: 15px 20px; margin: 15px 0; border-radius: 12px; box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);">
+      <strong style="font-size: 18px; display: block; margin-bottom: 10px;">Recomendaciones:</strong>
+      <ul style="margin: 5px 0; padding-left: 20px;">
+        {% for rec in recommendations %}
+        <li style="margin: 5px 0;">{{ rec }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            {% for c in columns %}
+            <th>{{ c }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            {% for c in columns %}
+            <td>
+              {% if row[c] is none or row[c] == '' %}
+                <span class="missing-value">[FALTANTE]</span>
+              {% else %}
+                {{ row[c] }}
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <form action="/apply" method="post" id="processForm" target="_blank">
+      <input type="hidden" name="session_id" value="{{ session_id }}" />
+
+      <!-- Relleno -->
+      <div class="section">
+        <h3>1) Rellenar valores faltantes</h3>
+        <label><input type="checkbox" name="fill_missing_on" /> Activar</label>
+        <br />
+
+        <label
+          >Método:
+          <select name="fill_method">
+            <option value="mean">mean</option>
+            <option value="median">median</option>
+            <option value="mode">mode</option>
+            <option value="ffill">ffill</option>
+            <option value="bfill">bfill</option>
+            <option value="constant">constant</option>
+          </select>
+        </label>
+
+        <br />
+        <label
+          >Valor constante:
+          <input type="text" name="constant_value" placeholder="0 o texto" />
+        </label>
+      </div>
+
+      <!-- Discretización -->
+      <div class="section">
+        <h3>2) Discretización</h3>
+        <label><input type="checkbox" name="discretize_on" /> Activar</label>
+        <br />
+        <p>Columnas:</p>
+
+        {% for c in columns %}
+        <label
+          ><input type="checkbox" name="discretize_cols" value="{{ c }}" /> {{ c
+          }}</label
+        ><br />
+        {% endfor %}
+
+        <label
+          >Número de bins:
+          <input type="number" name="n_bins" value="5" min="2" max="50" />
+        </label>
+      </div>
+
+      <!-- Normalización -->
+      <div class="section">
+        <h3>3) Normalización (Min-Max)</h3>
+        <label><input type="checkbox" name="normalize_on" /> Activar</label>
+
+        <p>Columnas numéricas:</p>
+        {% for c in numeric_columns %}
+        <label
+          ><input type="checkbox" name="normalize_cols" value="{{ c }}" /> {{ c
+          }}</label
+        ><br />
+        {% endfor %}
+      </div>
+
+      <!-- Predicción con Árboles de Decisión -->
+      <div class="section">
+        <h3>4) Predicción con Árboles de Decisión</h3>
+        <label><input type="checkbox" name="predict_on" /> Activar</label>
+        <br />
+        <label
+          ><input type="checkbox" name="use_forest" /> Usar Random Forest (más preciso pero más lento)</label
+        >
+        <br /><br />
+        <p>Selecciona las columnas con valores faltantes a predecir:</p>
+        {% if missing_info %}
+          {% for c in missing_info.keys() %}
+          <label
+            ><input type="checkbox" name="predict_cols" value="{{ c }}" /> {{ c
+            }} ({{ missing_info[c] }} faltantes)</label
+          ><br />
+          {% endfor %}
+        {% else %}
+          <p style="color: #7f8c8d; font-style: italic;">No hay columnas con valores faltantes para predecir.</p>
+        {% endif %}
+      </div>
+
+      <button class="btn" type="submit" onclick="handleSubmit(event)">Procesar y descargar CSV</button>
+    </form>
+    <div id="errorModal" class="modal-overlay">
+      <div class="modal">
+        <h3>Advertencia</h3>
+        <p>Debes seleccionar al menos una opción antes de procesar el archivo.</p>
+        <button class="modal-btn" onclick="closeModal()">OK</button>
+      </div>
+    </div>
+    <script>
+      function closeModal() {
+        document.getElementById('errorModal').classList.remove('show');
+      }
+      
+      function handleSubmit(e) {
+        e.preventDefault();
+        const form = document.getElementById('processForm');
+        
+        const fillMissing = form.querySelector('input[name="fill_missing_on"]').checked;
+        const discretize = form.querySelector('input[name="discretize_on"]').checked;
+        const normalize = form.querySelector('input[name="normalize_on"]').checked;
+        const predict = form.querySelector('input[name="predict_on"]').checked;
+        
+        if (!fillMissing && !discretize && !normalize && !predict) {
+          document.getElementById('errorModal').classList.add('show');
+          return;
+        }
+        
+        const sessionId = form.querySelector('input[name="session_id"]').value;
+        
+        const formData = new FormData(form);
+        fetch('/apply', {
+          method: 'POST',
+          body: formData
+        }).then(response => {
+          const contentDisposition = response.headers.get('Content-Disposition');
+          let filename = 'processed.csv';
+          if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (filenameMatch) {
+              filename = filenameMatch[1];
+            }
+          }
+          return response.blob().then(blob => ({ blob, filename }));
+        }).then(({ blob, filename }) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          setTimeout(function() {
+            window.location.href = '/success/' + sessionId;
+          }, 500);
+        }).catch(error => {
+          console.error('Error:', error);
+          alert('Error al procesar el archivo');
+        });
+      }
+    </script>
+  </body>
+</html>
